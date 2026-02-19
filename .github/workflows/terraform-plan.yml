@@ -97,7 +97,7 @@ Show Plan
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: output
-            })
+            });
       
       - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
