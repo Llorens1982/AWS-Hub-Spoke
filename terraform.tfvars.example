@@ -1,0 +1,33 @@
+# terraform.tfvars — Personaliza estos valores para tu entorno
+# IMPORTANTE: No commitear este fichero si contiene valores sensibles.
+# Usa .tfvars.example como plantilla y añade terraform.tfvars al .gitignore.
+
+aws_region   = "eu-west-1"
+project_name = "mycompany-hub-spoke"
+
+availability_zones = ["eu-west-1a", "eu-west-1b"]
+
+# Hub VPC
+hub_vpc_cidr        = "10.0.0.0/16"
+hub_public_subnets  = ["10.0.0.0/24", "10.0.1.0/24"]
+hub_private_subnets = ["10.0.10.0/24", "10.0.11.0/24"]
+
+# Spokes
+spokes = {
+  dev = {
+    cidr            = "10.1.0.0/16"
+    private_subnets = ["10.1.10.0/24", "10.1.11.0/24"]
+    public_subnets  = ["10.1.0.0/24", "10.1.1.0/24"]
+    environment     = "dev"
+  }
+  prod = {
+    cidr            = "10.2.0.0/16"
+    private_subnets = ["10.2.10.0/24", "10.2.11.0/24"]
+    public_subnets  = ["10.2.0.0/24", "10.2.1.0/24"]
+    environment     = "prod"
+  }
+}
+
+# Bastion
+enable_bastion        = true
+bastion_instance_type = "t3.micro"

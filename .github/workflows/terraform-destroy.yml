@@ -1,0 +1,59 @@
+name: "Terraform Destroy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Escribe 'destroy' para confirmar la destrucción de toda la infraestructura"
+        required: true
+      environment:
+        description: "Entorno a destruir (solo informativo, se destruye todo)"
+        required: true
+        default: "ALL"
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  TF_VERSION: "1.7.5"
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  terraform-destroy:
+    name: "Terraform Destroy ⚠️"
+    runs-on: ubuntu-latest
+    environment: production  # Requiere aprobación manual
+
+    if: github.event.inputs.confirm == 'destroy'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: github-actions-terraform-destroy
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="dynamodb_table=${{ secrets.TF_LOCK_TABLE }}" \
+            -backend-config="region=${{ env.AWS_REGION }}" \
+            -input=false
+
+      - name: Terraform Destroy
+        run: |
+          terraform destroy \
+            -var-file="terraform.tfvars" \
+            -auto-approve \
+            -input=false
